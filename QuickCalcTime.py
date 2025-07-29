@@ -3,6 +3,7 @@ import PIL as pil
 import datetime
 import os
 import pytesseract as tess
+import cv2
 
 # Убедитесь, что pytesseract настроен правильно
 tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -11,8 +12,15 @@ tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 screenshot = gui.screenshot(region=(870, 280, 1770, 330))
 screenshot.save("screenshot.png")
 
-# Преобразуем изображение в формат, который может быть обработан pytesseract
-image = pil.Image.open("Screenshot.png") #("screenshot.png")
+# С помощью OpenCV Увеличим изображение и преобразуем его в оттенки серого
+image = cv2.imread("screenshot_test1.png")
+image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Увеличим изображение для лучшего распознавания c применением бикубической интерполяции (медленная, но качественная)
+image = cv2.resize(image, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
+
+# Сохраним измененное изображение для отладки
+cv2.imwrite("screenshot_resized.png", image)
 
 # Используем pytesseract для извлечения всех цифри и : из изображения
 extracted_text = tess.image_to_string(image, config='--psm 6 -c tessedit_char_whitelist="0123456789:"')
@@ -41,9 +49,16 @@ if len(times) == 2:
     time2 = datetime.datetime.strptime(time2_str, '%M:%S:%f')
     delta_time = time2 - time1
     print(f"Delta Time: {delta_time}")
+    # Запишем delta_time в файл rusult.txt
+    with open("C:\\Users\\Саша\\result.txt", "w") as file:
+        file.write(f"Time 1: {time1_str}\n")
+        file.write(f"Time 2: {time2_str}\n")
+        file.write(f"Delta Time: {delta_time}\n")
 else:
-    print("Не удалось найти два времени в извлеченном тексте.")
+    print("Не удалось найти два времени в извлеченном тексте")
 
 # Удаляем временный файл скриншота
 if os.path.exists("screenshot.png"):
     os.remove("screenshot.png")
+    
+input("Press Enter to exit...")
