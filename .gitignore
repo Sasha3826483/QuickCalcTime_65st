@@ -2,3 +2,4 @@ build/
 dist/
 *.png
 *.spec
+*.txt
