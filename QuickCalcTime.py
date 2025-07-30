@@ -8,19 +8,25 @@ import cv2
 # Убедитесь, что pytesseract настроен правильно
 tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
+# Удаляем файл result.txt, если он существует
+if os.path.exists("result.txt"):
+    os.remove("result.txt")
+
 # Сделаем скриншот заранее выделенной области экрана
-screenshot = gui.screenshot(region=(870, 280, 1770, 330))
+screenshot = gui.screenshot(region=(770, 280, 980, 30))
 screenshot.save("screenshot.png")
 
+print("PWD:", os.getcwd())
+
 # С помощью OpenCV Увеличим изображение и преобразуем его в оттенки серого
-image = cv2.imread("screenshot_test1.png")
+image = cv2.imread("screenshot.png")
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 # Увеличим изображение для лучшего распознавания c применением бикубической интерполяции (медленная, но качественная)
 image = cv2.resize(image, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
 
 # Сохраним измененное изображение для отладки
-cv2.imwrite("screenshot_resized.png", image)
+#cv2.imwrite("screenshot_resized.png", image)
 
 # Используем pytesseract для извлечения всех цифри и : из изображения
 extracted_text = tess.image_to_string(image, config='--psm 6 -c tessedit_char_whitelist="0123456789:"')
@@ -50,15 +56,19 @@ if len(times) == 2:
     delta_time = time2 - time1
     print(f"Delta Time: {delta_time}")
     # Запишем delta_time в файл rusult.txt
-    with open("C:\\Users\\Саша\\result.txt", "w") as file:
+    with open("result.txt", "w") as file:
         file.write(f"Time 1: {time1_str}\n")
         file.write(f"Time 2: {time2_str}\n")
         file.write(f"Delta Time: {delta_time}\n")
 else:
-    print("Не удалось найти два времени в извлеченном тексте")
+    print("ERROR: Couldn't find two times")
+    with open("result.txt", "w") as file:
+        file.write("ERROR: Couldn't find two times")
 
-# Удаляем временный файл скриншота
+# Удаляем временный файл скриншота и resized скриншота
 if os.path.exists("screenshot.png"):
     os.remove("screenshot.png")
+#if os.path.exists("screenshot_resized.png"):
+#    os.remove("screenshot_resized.png")
     
-input("Press Enter to exit...")
+#input("Press Enter to exit...")
