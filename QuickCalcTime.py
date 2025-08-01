@@ -4,6 +4,7 @@ import datetime
 import os
 import pytesseract as tess
 import cv2
+import mss
 
 # Убедитесь, что pytesseract настроен правильно
 tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
