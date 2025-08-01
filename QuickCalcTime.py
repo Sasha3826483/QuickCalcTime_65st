@@ -4,7 +4,8 @@ import datetime
 import os
 import pytesseract as tess
 import cv2
-import mss
+from mss import mss
+import numpy as np
 
 # Убедитесь, что pytesseract настроен правильно
 tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -14,14 +15,23 @@ if os.path.exists("result.txt"):
     os.remove("result.txt")
 
 # Сделаем скриншот заранее выделенной области экрана
-screenshot = gui.screenshot(region=(770, 280, 980, 30))
-screenshot.save("screenshot.png")
+#screenshot = gui.screenshot(region=(770, 280, 980, 30))
+#screenshot.save("screenshot.png")
 
-print("PWD:", os.getcwd())
+# Сделаем скриншот экрана в выеделенной области с помощью mss
+with mss() as scrshot:
+    print("PWD: ", os.getcwd())
+    region = {"top": 280, "left": 770, "width": 980, "height": 30}
+    screenshot = scrshot.grab(region)
+
+    image = np.array(screenshot)
 
 # С помощью OpenCV Увеличим изображение и преобразуем его в оттенки серого
-image = cv2.imread("screenshot.png")
+#image = cv2.imread("screenshot.png")
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Сохраним скриншот для отладки
+cv2.imwrite("screenshot_resized.png", image)
 
 # Увеличим изображение для лучшего распознавания c применением бикубической интерполяции (медленная, но качественная)
 image = cv2.resize(image, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
@@ -67,8 +77,8 @@ else:
         file.write("ERROR: Couldn't find two times")
 
 # Удаляем временный файл скриншота и resized скриншота
-if os.path.exists("screenshot.png"):
-    os.remove("screenshot.png")
+#if os.path.exists("screenshot.png"):
+#    os.remove("screenshot.png")
 #if os.path.exists("screenshot_resized.png"):
 #    os.remove("screenshot_resized.png")
     
