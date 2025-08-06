@@ -18,10 +18,12 @@ if os.path.exists("result.txt"):
 #screenshot = gui.screenshot(region=(770, 280, 980, 30))
 #screenshot.save("screenshot.png")
 
+# Выводим текущую рабочую директорию для отладки
+#print("PWD: ", os.getcwd())
+
 # Сделаем скриншот экрана в выеделенной области с помощью mss
 with mss() as scrshot:
-    print("PWD: ", os.getcwd())
-    region = {"top": 280, "left": 770, "width": 980, "height": 30}
+    region = {"top": 280, "left": 770, "width": 980, "height": 40}
     screenshot = scrshot.grab(region)
 
     image = np.array(screenshot)
@@ -31,19 +33,22 @@ with mss() as scrshot:
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 # Сохраним скриншот для отладки
-cv2.imwrite("screenshot_resized.png", image)
+#cv2.imwrite("screenshot_resized0.png", image)
 
 # Увеличим изображение для лучшего распознавания c применением бикубической интерполяции (медленная, но качественная)
 image = cv2.resize(image, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
 
 # Сохраним измененное изображение для отладки
-#cv2.imwrite("screenshot_resized.png", image)
+cv2.imwrite("screenshot_resized.png", image)
 
 # Используем pytesseract для извлечения всех цифри и : из изображения
 extracted_text = tess.image_to_string(image, config='--psm 6 -c tessedit_char_whitelist="0123456789:"')
 
 # Разделим извлеченный текст на строки
 lines = extracted_text.split('\n')
+
+# Выведем пустую строку для отладки
+#print("\n")
 
 # Ищем строки, содержащие ровно два времени в формате MM:SS:FF
 times = []
