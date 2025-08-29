@@ -6,6 +6,7 @@ import pytesseract as tess
 import cv2
 from mss import mss
 import numpy as np
+import easyocr
 
 # Убедитесь, что pytesseract настроен правильно
 tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -42,10 +43,17 @@ image = cv2.resize(image, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
 cv2.imwrite("screenshot_resized.png", image)
 
 # Используем pytesseract для извлечения всех цифри и : из изображения
-extracted_text = tess.image_to_string(image, config='--psm 6 -c tessedit_char_whitelist="0123456789:"')
+#extracted_text = tess.image_to_string(image, config='--psm 6 -c tessedit_char_whitelist="0123456789:"')
+
+reader = easyocr.Reader(['en'], gpu=False)  # Инициализация easyocr
+extracted_text = reader.readtext(image, detail=0, paragraph=True)
+# extracted_text теперь содержит список строк, распознанных на изображении
+print("Extracted Text:", extracted_text)  # Выводим извлеченный текст для отладки
 
 # Разделим извлеченный текст на строки
-lines = extracted_text.split('\n')
+lines = []
+for item in extracted_text:
+    lines.extend(item.split('\n'))
 
 # Выведем пустую строку для отладки
 #print("\n")
@@ -56,12 +64,16 @@ for line in lines:
     # Разделяем строку на части по пробелам
     parts = line.split()
     # Фильтруем части, оставляя только те, которые соответствуют формату MM:SS:FF
-    valid_times = [part for part in parts if len(part) == 8 and part.count(':') == 2]
+    valid_times = [part for part in parts if len(part) == 8 and part.count('.') == 2]
+    # Заменим в найденных частях точки на двоеточия
+    valid_times = [part.replace('.', ':') for part in valid_times]
     for valid_time in valid_times:
         print("Valid time found:", valid_time)
     # Если нашли ровно два времени, добавляем их в список times
-    if len(valid_times) == 2:
+    if len(valid_times) == 1:
         times.extend(valid_times)
+
+print("Number of valid times found in line:", len(times))
 
 # Если найдено два времени, преобразуем их в timedelta
 if len(times) == 2:
